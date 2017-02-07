@@ -9,9 +9,9 @@ serverInit <- function(port=PORT) {
   print(paste0('Listening on port ', PORT))
   while (!DONE) {  # isIncomplete(CON) evaluates 2 F before response been sent 
     data <- readLines(CON, 1)
-    if (length(data) > 0 && data == 'EXIT') serverKill()
     response <- toupper(data)
     writeLines(response, CON)
+    if (data == 'EXIT') serverKill()
   }
 }
 # Shut a server socket
