@@ -5,14 +5,7 @@ message('Run serverInit() to establish a socket connection, serverKill() to shut
 # Provide a socket server
 serverInit <- function(port=PORT) {
   CON <<- socketConnection(host='localhost', port=port, server=T, blocking=T, open='r+')
-  #on.exit(close(CON))
-  print(paste0('Listening on port ', PORT))
-  while (!DONE) {  # isIncomplete(CON) evaluates 2 F before response been sent 
-    data <- readLines(CON, 1)
-    response <- toupper(data)
-    writeLines(response, CON)
-    if (data == 'EXIT') serverKill()
-  }
+  print(paste0('Listening on port ', port))
 }
 # Shut a server socket
 serverKill <- function() {
@@ -20,5 +13,18 @@ serverKill <- function() {
   close(CON)
   rm(CON, envir=globalenv())
 }
+# Send text thru the socket
+rocket <- function(text) {
+  stopifnot(typeof(text) == 'character')
+  if (!exists('CON')) clientInit()
+  writeLines(text, CON)
+  if (text == 'EXIT') clientKill() 
+}
 # Starting the server
 serverInit()
+# Printing payload
+while (!DONE) {  # isIncomplete(CON) evaluates 2 F before response been sent 
+  data <- readLines(CON, 1)
+  print(data)
+  if (data == 'EXIT') serverKill()
+}
