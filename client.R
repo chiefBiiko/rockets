@@ -1,8 +1,7 @@
 # rockets client
-PORT <- 36000
 
 # Establishing a connection 2 the server-side
-CON <- socketConnection(host='localhost', port=PORT, server=F, blocking=T, open='r+')
+CON <- socketConnection(host='localhost', port=36000, server=F, blocking=T, open='r+')
 print(summary.connection(CON))
 
 # Sending text thru the connection
