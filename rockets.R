@@ -33,32 +33,38 @@ openRocket <- function(host, port, open='a') {
 pumpOutBitJSON <- function(x, socket) {
   stopifnot(tryCatch(isOpen(socket), error=function(err) FALSE))
   if (!bitjson::looksLikeBitJSON(x)) x <- bitjson::toBitJSON(x)
-  writeChar(x, socket, nchars=nchar(x, type='chars'), eos='\n', useBytes=FALSE)
+  writeChar(object=iconv(x, from='', to='UTF-8'), 
+            con=socket, 
+            nchars=nchar(x, type='chars'), 
+            eos='\n', useBytes=FALSE)
   return(invisible(0L))
 }
 
-#' Read in new-line delimited bitjson from a log file
+#' Parse new-line delimited bitjson
 #' 
-#' @param ndbitjson Character vector of length \code{1}, the filename.
-#' @return R objects. 
+#' @param ndbitjson Character vector of length \code{1}; filename, url, or
+#' in-memory \code{JSON} string.
+#' @param diff.only Logical. Should only diffs within a \code{R} session 
+#' be returned? Useful for repeatedly parsing bitjson log files into memory.
+#' @return List. 
 #'
 #' @export
-fromNdBitJSON <- function(ndbitjson, diff.only=TRUE) {
+fromNdBitJSON <- function(ndbitjson, diff.only=FALSE) {
+  stopifnot(is.logical(diff.only))
   if (file.exists(ndbitjson) || 
       grepl('^(?:https?)|(?:ftps?)\\:\\/\\/.+', ndbitjson, perl=TRUE)) {
-    bitjson.lines <- readLines(ndbitjson)
+    bitjson.lines <- readLines(ndbitjson, encoding='UTF-8')
     if (!length(bitjson.lines)) return(NULL) 
   } else if (is.character(ndbitjson) && length(ndbitjson) == 1L) {
     bitjson.lines <- strsplit(ndbitjson, '\n', TRUE)[[1L]]
   } else { stop('invalid input') }
-  if (!all(sapply(list(bitjson.lines), bitjson::looksLikeBitJSON))) {
+  if (!all(sapply(as.list(bitjson.lines), bitjson::looksLikeBitJSON))) {
     warning('input is not strictly new-line delimited bitjson\n',
             'returning unparsed lines...better to parse manually')
     return(bitjson.lines)
   }
-  # diff check against an env var holding prev reads; working?
   if (diff.only) {
-    old.lines <- strplit(Sys.getenv('ROCKETS_NDBITJSON'), '\n', TRUE)[[1L]]
+    old.lines <- strsplit(Sys.getenv('ROCKETS_NDBITJSON'), '\n', TRUE)[[1L]]
     Sys.setenv(ROCKETS_NDBITJSON=paste0(bitjson.lines, collapse='\n'))
     bitjson.lines <- bitjson.lines[!bitjson.lines %in% old.lines]
   }
