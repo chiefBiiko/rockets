@@ -45,11 +45,11 @@ pumpOutBitJSON <- function(x, socket) {
 #' @export
 fromNdBitJSON <- function(ndbitjson, diff.only=TRUE) {
   if (file.exists(ndbitjson) || 
-      grepl('^(?:https?)|(?:ftps?)\\:\\/\\/$', ndbitjson, perl=TRUE)) {
+      grepl('^(?:https?)|(?:ftps?)\\:\\/\\/.+', ndbitjson, perl=TRUE)) {
     bitjson.lines <- readLines(ndbitjson)
     if (!length(bitjson.lines)) return(NULL) 
-  } else if (is.character(ndbitjson) && length(ndbitjson)) {
-    bitjson.lines <- ndbitjson
+  } else if (is.character(ndbitjson) && length(ndbitjson) == 1L) {
+    bitjson.lines <- strsplit(ndbitjson, '\n', fixed=TRUE)[1L]
   } else { stop('invalid input') }
   if (!all(sapply(list(bitjson.lines), bitjson::looksLikeBitJSON))) {
     warning('input is not strictly new-line delimited bitjson\n',
