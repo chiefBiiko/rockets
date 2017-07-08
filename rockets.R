@@ -43,7 +43,7 @@ pumpOutBitJSON <- function(x, socket) {
 #' @return R objects. 
 #'
 #' @export
-fromNdBitJSON <- function(ndbitjson) {
+fromNdBitJSON <- function(ndbitjson, diff.only=TRUE) {
   if (file.exists(ndbitjson) || 
       grepl('^(?:https?)|(?:ftps?)\\:\\/\\/$', ndbitjson, perl=TRUE)) {
     bitjson.lines <- readLines(ndbitjson)
@@ -55,6 +55,12 @@ fromNdBitJSON <- function(ndbitjson) {
     warning('input is not strictly new-line delimited bitjson\n',
             'returning unparsed lines...better to parse manually')
     return(bitjson.lines)
+  }
+  #
+  # TODO: diff check against an env var holding prev reads
+  #
+  if (diff.only) {
+    
   }
   return(lapply(as.list(bitjson.lines), bitjson::fromBitJSON))
 }
