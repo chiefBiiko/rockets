@@ -1,6 +1,6 @@
 # rockets
 
-#' Open a client connection to a tcp server
+#' Open a client connection to a socket server
 #' 
 #' @param host character. Host name for the port.
 #' @param port integer. The TCP port number.
@@ -9,7 +9,7 @@
 #' @return sockconn. Connection object.
 #' 
 #' @export
-openRocket <- function(host, port, open='a+') {
+openRocket <- function(host, port, open='a') {
   stopifnot(grepl('[[:alnum:][:punct:]]+', host, perl=TRUE),
             is.numeric(port) && port %in% 0L:65535L,
             open %in% c('a', 'a+', 'r'))
@@ -23,6 +23,42 @@ openRocket <- function(host, port, open='a+') {
   return(rocket)
 }
 
+#' Write a bitjson array to a socket
+#' 
+#' @param x Any R object or a bitjson array.
+#' @param socket sockconn. An open connection object.
+#' @return integer. Invisible \code{0} only if writing to the socket succeeded.
+#' 
+#' @export
+pumpOutBitJSON <- function(x, socket) {
+  stopifnot(tryCatch(isOpen(socket), error=function(err) FALSE))
+  if (!bitjson::looksLikeBitJSON(x)) x <- bitjson::toBitJSON(x)
+  writeChar(x, socket, nchars=nchar(x, type='chars'), eos='\n', useBytes=FALSE)
+  return(invisible(0L))
+}
+
+#' Read in new-line delimited bitjson from a log file
+#' 
+#' @param ndbitjson Character vector of length \code{1}, the filename.
+#' @return R objects. 
+#'
+#' @export
+fromNdBitJSON <- function(ndbitjson) {
+  if (file.exists(ndbitjson) || 
+      grepl('^(?:https?)|(?:ftps?)\\:\\/\\/$', ndbitjson, perl=TRUE)) {
+    bitjson.lines <- readLines(ndbitjson)
+    if (!length(bitjson.lines)) return(NULL) 
+  } else if (is.character(ndbitjson) && length(ndbitjson)) {
+    bitjson.lines <- ndbitjson
+  } else { stop('invalid input') }
+  if (!all(sapply(list(bitjson.lines), bitjson::looksLikeBitJSON))) {
+    warning('input is not strictly new-line delimited bitjson\n',
+            'returning unparsed lines...better to parse manually')
+    return(bitjson.lines)
+  }
+  return(lapply(as.list(bitjson.lines), bitjson::fromBitJSON))
+}
+
 #' Read in an entire bitjson array from a socket
 #' 
 #' @param socket sockconn. An open connection object.
@@ -30,7 +66,7 @@ openRocket <- function(host, port, open='a+') {
 #' @return \code{NULL} if buffer is empty; otherwise if \code{!unmarshal}
 #' bitjson array else if \code{unmarshal} R object.
 #'
-#' @export
+#' 
 pumpInBitJSON <- function(socket, unmarshal=TRUE) {
   stopifnot(tryCatch(isOpen(socket), error=function(err) FALSE),
             is.logical(unmarshal))
@@ -47,20 +83,4 @@ pumpInBitJSON <- function(socket, unmarshal=TRUE) {
   } else if (!unmarshal) {
     return(structure(paste0(payload, collapse=''), class='json'))
   }
-}
-
-#' Write a bitjson array to a socket
-#' 
-#' @param x Any R object or a bitjson array.
-#' @param socket sockconn. An open connection object.
-#' @return integer. Invisible \code{0} only if writing to the socket succeeded.
-#' 
-#' TODO: -replace stopifnot @bitjson::looksLikeBitJSON with an early exit
-#' 
-#' @export
-pumpOutBitJSON <- function(x, socket) {
-  stopifnot(tryCatch(isOpen(socket), error=function(err) FALSE))
-  if (!bitjson::looksLikeBitJSON(x)) x <- bitjson::toBitJSON(x)
-  writeChar(x, socket, nchars=nchar(x, type='chars'), eos=NULL, useBytes=FALSE)
-  return(invisible(0L))
 }

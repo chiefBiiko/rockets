@@ -1,13 +1,19 @@
 # rockets server
 
-# Creating a server socket
-CON <- socketConnection(host='localhost', port=36000, server=T, blocking=T, open='r+')
-print(summary.connection(CON))
+# creating a server socket
+CON <- socketConnection(host='0.0.0.0',
+                        port=49419L,
+                        server=T, 
+                        blocking=T, 
+                        open='r')
 
-# Handling connections
-while (isTRUE(try(isOpen(CON), T))) {
-  data <- readLines(CON, 1)
-  if (length(data) > 0) writeLines(gsub('s|ß|z', '$', data, ignore.case=T), CON)  # send back response
+cat('[new connection on 0.0.0.0:49419]')
+
+# handling connections
+repeat {
+  data <- readLines(CON, 1L, skipNul=TRUE)
+  if (length(data) > 0L) cat(data,
+                             file='R_server.log', 
+                             sep='\n', 
+                             append=TRUE)
 }
-
-close(CON)
