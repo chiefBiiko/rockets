@@ -49,18 +49,18 @@ fromNdBitJSON <- function(ndbitjson, diff.only=TRUE) {
     bitjson.lines <- readLines(ndbitjson)
     if (!length(bitjson.lines)) return(NULL) 
   } else if (is.character(ndbitjson) && length(ndbitjson) == 1L) {
-    bitjson.lines <- strsplit(ndbitjson, '\n', fixed=TRUE)[1L]
+    bitjson.lines <- strsplit(ndbitjson, '\n', TRUE)[[1L]]
   } else { stop('invalid input') }
   if (!all(sapply(list(bitjson.lines), bitjson::looksLikeBitJSON))) {
     warning('input is not strictly new-line delimited bitjson\n',
             'returning unparsed lines...better to parse manually')
     return(bitjson.lines)
   }
-  #
-  # TODO: diff check against an env var holding prev reads
-  #
+  # diff check against an env var holding prev reads; working?
   if (diff.only) {
-    
+    old.lines <- strplit(Sys.getenv('ROCKETS_NDBITJSON'), '\n', TRUE)[[1L]]
+    Sys.setenv(ROCKETS_NDBITJSON=paste0(bitjson.lines, collapse='\n'))
+    bitjson.lines <- bitjson.lines[!bitjson.lines %in% old.lines]
   }
   return(lapply(as.list(bitjson.lines), bitjson::fromBitJSON))
 }
