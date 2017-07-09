@@ -35,3 +35,5 @@ initServerSocket <- function(host='0.0.0.0', port=49419L) {
     }
   }
 }
+
+initServerSocket()
