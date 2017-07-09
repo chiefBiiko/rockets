@@ -1,7 +1,9 @@
 # rockets server
 
-initServerSocket <- function(host='0.0.0.0', port=49419L) {
-  stopifnot(is.character(host), length(host) == 1L, nchar(host) > 0L, 
+initServerSocket <- function(host='127.0.0.1', port=10419L) {
+  stopifnot(is.character(host), 
+            length(host) == 1L, 
+            nchar(host) > 0L, 
             port %in% 1024L:65535L)
   # creating a server socket
   CON <- socketConnection(host=host,
@@ -36,4 +38,5 @@ initServerSocket <- function(host='0.0.0.0', port=49419L) {
   }
 }
 
-initServerSocket()
+initServerSocket(host=commandArgs(trailingOnly=TRUE)[1L],
+                 port=commandArgs(trailingOnly=TRUE)[2L])
