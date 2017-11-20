@@ -1,0 +1,29 @@
+{
+  "name": "pretty-heap-used",
+  "version": "0.0.0",
+  "description": "extend process.memoryUsage's return by pretty properties on heap usage",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chiefbiiko/pretty-heap-used.git"
+  },
+  "keywords": [
+    "heap",
+    "memory"
+  ],
+  "author": "Noah Anabiik Schwarz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chiefbiiko/pretty-heap-used/issues"
+  },
+  "homepage": "https://github.com/chiefbiiko/pretty-heap-used",
+  "dependencies": {
+    "pojo-ops": "^0.3.0"
+  },
+  "devDependencies": {
+    "tape": "^4.8.0"
+  }
+}
